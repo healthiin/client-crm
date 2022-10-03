@@ -1,0 +1,74 @@
+[
+  {
+    "id": "8bcbf755-7829-40c5-aa79-2c3e9846820a",
+    "user": "이*수",
+    "createdAt": "2022-10-01",
+    "exercise": {
+      "gym": "OOO"
+    },
+    "routines": [
+      {
+        "title": "러닝머신",
+        "startedAt": "18:31",
+        "finishedAt": "18:41"
+      },
+      {
+        "title": "레그 익스텐션",
+        "startedAt": "18:45",
+        "finishedAt": "18:55",
+        "weight": 10,
+        "set": 3
+      },
+      {
+        "title": "레그 컬",
+        "startedAt": "19:00",
+        "finishedAt": "19:10",
+        "weight": 10,
+        "set": 3
+      },
+      {
+        "title": "스컬 크러셔",
+        "startedAt": "19:15",
+        "finishedAt": "19:25",
+        "weight": 10,
+        "set": 3
+      },
+      {
+        "title": "펙덱",
+        "startedAt": "19:30",
+        "finishedAt": "19:40",
+        "weight": 10,
+        "set": 3
+      }
+    ],
+    "meals": [
+      {
+        "type": "아침",
+        "calories": 300,
+        "photo": "https://placehold.it",
+        "menus": [
+          "닭가슴살"
+        ]
+      },
+      {
+        "type": "점심",
+        "calories": 600,
+        "photo": "https://placehold.it",
+        "menus": [
+          "샐러드",
+          "닭가슴살"
+        ]
+      },
+      {
+        "type": "저녁",
+        "calories": 900,
+        "photo": "https://placehold.it",
+        "menus": [
+          "샐러드",
+          "바나나",
+          "닭가슴살"
+        ]
+      }
+    ]
+  }
+]

@@ -1,0 +1,14 @@
+diff --git a/node_modules/vue3-styled-components/index.d.ts b/node_modules/vue3-styled-components/index.d.ts
+index 8101239..298579e 100644
+--- a/node_modules/vue3-styled-components/index.d.ts
++++ b/node_modules/vue3-styled-components/index.d.ts
+@@ -234,7 +234,8 @@ interface IntrinsicElementAttributes {
+ 
+ export const ThemeProvider: Vue.DefineComponent<ThemeObject>
+ 
+-export const css: (input: TemplateStringsArray) => string
++export const css: (input: TemplateStringsArray, ...props: unknown[]) => string
++export const injectGlobal: (input: TemplateStringsArray, ...props: unknown[]) => string
+ 
+ export const styled: Styled
+ export default styled
