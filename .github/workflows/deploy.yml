@@ -1,0 +1,31 @@
+name: Deployment
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_DEFAULT_REGION: ap-northeast-2
+    steps:
+      - uses: actions/checkout@v1
+
+      - uses: c-hive/gha-yarn-cache@v2
+
+      - name: Install dependencies
+        run: yarn
+
+      - name: Build
+        run: yarn build
+
+      - name: Deploy to S3
+        uses: lbertenasco/s3-deploy@v1
+        with:
+          folder: dist
+          bucket: healthin-report-front
+          dist-id: E1ATJIYPRU1ELM
+          invalidation: / *
