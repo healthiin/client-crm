@@ -1635,6 +1635,11 @@ jsonfile@^4.0.0:
   optionalDependencies:
     graceful-fs "^4.1.6"
 
+kakao-js-sdk@^1.1.5:
+  version "1.1.5"
+  resolved "https://registry.yarnpkg.com/kakao-js-sdk/-/kakao-js-sdk-1.1.5.tgz#8940b877a43b5e7483053f1ec959778a6c6cd1a7"
+  integrity sha512-xWN8AFQTt9PxAhlGGEqja1YCEPQhfaaPmXQlRoRQsTS25GNANdnmz+2as7hl+y1U86Vl8UqpSdeNqt9d7L1T9Q==
+
 klaw-sync@^6.0.0:
   version "6.0.0"
   resolved "https://registry.yarnpkg.com/klaw-sync/-/klaw-sync-6.0.0.tgz#1fd2cfd56ebb6250181114f0a581167099c2b28c"

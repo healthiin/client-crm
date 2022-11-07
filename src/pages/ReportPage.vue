@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import Kakao from 'kakao-js-sdk';
 import { onMounted, reactive, ref } from 'vue';
 import { useRouter } from 'vue-router';
 
@@ -45,6 +46,16 @@ const yearAndMonth = reactive({
   month: new Date().getMonth() + 1,
 });
 const days = [16, 17, 18, 19, 20, 21, 22];
+
+const handleSharing = async () => {
+  Kakao.Share.sendCustom({
+    templateId: 85541,
+    templateArgs: {
+      reportId: props.reportId,
+      nickname: report.value?.user,
+    },
+  });
+};
 </script>
 
 <template>
@@ -65,7 +76,7 @@ const days = [16, 17, 18, 19, 20, 21, 22];
     <Padder :top="20" :right="24" :bottom="21" :left="16">
       <Row justify="space-between">
         <p>2022년 8월 첫째주 종합 운동리포트</p>
-        <ShareIcon />
+        <ShareIcon @click="handleSharing" />
       </Row>
     </Padder>
 

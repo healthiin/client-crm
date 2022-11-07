@@ -13,7 +13,7 @@ const ContentArea = styled.div`
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  max-width: 360px;
+  max-width: 414px;
   width: 100%;
   margin: 0 auto;
   background: ${({ theme }) => theme.Background};
