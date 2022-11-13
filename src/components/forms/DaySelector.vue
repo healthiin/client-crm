@@ -4,8 +4,6 @@ import styled, { css } from 'vue3-styled-components';
 
 const DAY_OF_WEEKS = ['월', '화', '수', '목', '금', '토', '일'];
 
-const selectedIndex = ref<number>(4);
-
 const Container = styled.div`
   display: flex;
   width: 100%;
@@ -56,9 +54,12 @@ const DayNumberLabel = styled('span', { active: Boolean })`
 
 type Props = {
   days: number[];
+  modelValue: number;
 };
 const props = defineProps<Props>();
 const emit = defineEmits(['update:modelValue']);
+
+const selectedIndex = ref<number>(props.modelValue);
 
 const handleSelect = (index: number) => {
   selectedIndex.value = index;

@@ -1,11 +1,17 @@
 <script setup lang="ts">
+import {
+  addDays,
+  differenceInMinutes,
+  parseISO,
+  setWeek,
+  startOfWeek,
+} from 'date-fns';
 import Kakao from 'kakao-js-sdk';
+import { range } from 'radash';
 import { onMounted, reactive, ref } from 'vue';
 import { useRouter } from 'vue-router';
 
 import { ReportAPI } from '@/api';
-import type { GetReportResponse } from '@/api/report';
-import Tab from '@/components/buttons/Tab.vue';
 import CaloriesInfo from '@/components/forms/CaloriesInfo.vue';
 import DaySelector from '@/components/forms/DaySelector.vue';
 import MealInfo from '@/components/forms/MealInfo.vue';
@@ -21,6 +27,7 @@ import Col from '@/components/layouts/Col.vue';
 import Padder from '@/components/layouts/Padder.vue';
 import Row from '@/components/layouts/Row.vue';
 import SectionTitle from '@/components/texts/SectionTitle.vue';
+import type { ReportResult } from '@/models/report';
 import { Colors } from '@/utils/styles';
 
 type Props = { reportId: string };
@@ -28,24 +35,32 @@ const props = defineProps<Props>();
 
 const router = useRouter();
 const isLoading = ref<boolean>(true);
-const report = ref<GetReportResponse | null>(null);
+const report = ref<ReportResult | null>(null);
+
+const yearAndMonth = reactive({ year: 0, month: 0 });
+const days = ref<number[]>([]);
+const currentDateIndex = ref<number>(0);
 
 onMounted(async () => {
   const { data, status } = await ReportAPI.getReport(props.reportId);
+  if (status !== 200) return router.push('/');
 
-  if (status === 200) {
-    isLoading.value = false;
-    report.value = data;
-  } else {
-    return router.push('/');
-  }
-});
+  isLoading.value = false;
+  report.value = data;
 
-const yearAndMonth = reactive({
-  year: new Date().getFullYear(),
-  month: new Date().getMonth() + 1,
+  const initialDay = setWeek(
+    new Date(report.value.year, 0, 0, 0, 0, 0),
+    report.value.week,
+  );
+  const startDay = startOfWeek(initialDay);
+
+  days.value = Array.from(range(0, 6)).map(day =>
+    addDays(startDay, day as number).getDate(),
+  );
+
+  yearAndMonth.year = report.value.year;
+  yearAndMonth.month = Math.floor((report.value?.week || 4) / 4);
 });
-const days = [16, 17, 18, 19, 20, 21, 22];
 
 const handleSharing = async () => {
   Kakao.Share.sendCustom({
@@ -65,17 +80,9 @@ const handleSharing = async () => {
   </Col>
 
   <Col v-else-if="report">
-    <Padder :top="20" :right="24" :bottom="16" :left="16">
-      <Row :gap="8">
-        <Tab :is-active="true">Day</Tab>
-        <Tab>Week</Tab>
-        <Tab>Month</Tab>
-      </Row>
-    </Padder>
-
-    <Padder :top="20" :right="24" :bottom="21" :left="16">
+    <Padder :top="32" :right="24" :bottom="21" :left="16">
       <Row justify="space-between">
-        <p>2022년 8월 첫째주 종합 운동리포트</p>
+        <p>{{ report.title }}</p>
         <ShareIcon @click="handleSharing" />
       </Row>
     </Padder>
@@ -88,10 +95,10 @@ const handleSharing = async () => {
     </Padder>
 
     <Padder :left="16" :right="16">
-      <DaySelector :days="days" />
+      <DaySelector :days="days" v-model="currentDateIndex" />
     </Padder>
 
-    <Padder :left="16" :right="16" :top="48">
+    <Padder :left="16" :right="16" :top="48" v-show="false">
       <Row justify="space-around" align="center">
         <Col justify="center" align="center" :gap="16">
           <PieGraph :percent="62" :color="Colors.BulletViolet" />
@@ -110,39 +117,40 @@ const handleSharing = async () => {
           title="💪 운동"
           description="미리 설정한 루틴에 기반한 운동정보입니다."
         />
-        <Card type="dimmed">
+        <Card
+          type="dimmed"
+          v-if="report.result[days[currentDateIndex]].logs.length === 0"
+        >
+          <h4>기록된 운동이 없습니다.</h4>
+        </Card>
+        <Card
+          type="dimmed"
+          v-if="report.result[days[currentDateIndex]].logs.length > 0"
+        >
           <Padder :top="16">
             <Col align="center" :gap="20">
-              <BodyIcon />
-              <h3>유산소 160분 &middot; 근력 200분</h3>
+              <BodyIcon
+                :items="report.result[days[currentDateIndex]].logStatistics"
+              />
             </Col>
           </Padder>
         </Card>
-        <Card>
+        <Card v-if="report.result[days[currentDateIndex]].logs.length > 0">
           <Col align="center" :gap="16">
             <RoutineLogItem
-              title="런닝머신"
-              :play-minute="125"
-              :weight="45"
-              :set-number="3"
-            />
-            <RoutineLogItem
-              title="레그 익스텐션"
-              :play-minute="94"
-              :weight="70"
-              :set-number="3"
-            />
-            <RoutineLogItem
-              title="레그 익스텐션"
-              :play-minute="58"
-              :weight="70"
-              :set-number="3"
-            />
-            <RoutineLogItem
-              title="스컬 크러셔"
-              :play-minute="72"
-              :weight="70"
-              :set-number="3"
+              :title="log.title"
+              :weight="log.weight"
+              :play-minute="
+                Math.abs(
+                  differenceInMinutes(
+                    parseISO(log.startedAt),
+                    parseISO(log.endedAt),
+                  ),
+                )
+              "
+              :set-number="log.setNumber"
+              v-for="log in report.result[days[currentDateIndex]].logs"
+              :key="log.id"
             />
           </Col>
         </Card>
@@ -155,38 +163,193 @@ const handleSharing = async () => {
           title="🍽 식단 정보"
           description="오늘의 식단과 예측 칼로리를 알려드려요."
         />
-        <Card type="dimmed">
+
+        <Card
+          type="dimmed"
+          v-if="!report.result[days[currentDateIndex]].mealStatistics"
+        >
+          <h4>기록된 식단이 없습니다.</h4>
+        </Card>
+        <Card
+          type="dimmed"
+          v-if="!!report.result[days[currentDateIndex]].mealStatistics"
+        >
           <Col align="center" justify="center" :gap="20">
-            <PieSolidGraph />
+            <PieSolidGraph
+              :carbohydrate="
+                report.result[days[currentDateIndex]].mealStatistics
+                  .carbohydrate
+              "
+              :protein="
+                report.result[days[currentDateIndex]].mealStatistics.protein
+              "
+              :fat="report.result[days[currentDateIndex]].mealStatistics.fat"
+            />
             <Row :gap="12" justify="space-between">
               <Row :gap="6" justify="center" align="center">
                 <IndicatorIcon :color="Colors.BulletGreen" />
-                <h5>탄수화물 40%</h5>
+                <h5>
+                  탄수화물
+                  {{
+                    parseInt(
+                      (report.result[days[currentDateIndex]].mealStatistics
+                        .carbohydrate /
+                        (report.result[days[currentDateIndex]].mealStatistics
+                          .carbohydrate +
+                          report.result[days[currentDateIndex]].mealStatistics
+                            .protein +
+                          report.result[days[currentDateIndex]].mealStatistics
+                            .fat)) *
+                        100,
+                    )
+                  }}%
+                </h5>
               </Row>
               <Row :gap="6" justify="center" align="center">
                 <IndicatorIcon :color="Colors.BulletViolet" />
-                <h5>단백질 25%</h5>
+                <h5>
+                  단백질
+                  {{
+                    parseInt(
+                      (report.result[days[currentDateIndex]].mealStatistics
+                        .protein /
+                        (report.result[days[currentDateIndex]].mealStatistics
+                          .carbohydrate +
+                          report.result[days[currentDateIndex]].mealStatistics
+                            .protein +
+                          report.result[days[currentDateIndex]].mealStatistics
+                            .fat)) *
+                        100,
+                    )
+                  }}%
+                </h5>
               </Row>
               <Row :gap="6" justify="center" align="center">
                 <IndicatorIcon :color="Colors.BulletRed" />
-                <h5>지방 35%</h5>
+                <h5>
+                  지방
+                  {{
+                    parseInt(
+                      (report.result[days[currentDateIndex]].mealStatistics
+                        .fat /
+                        (report.result[days[currentDateIndex]].mealStatistics
+                          .carbohydrate +
+                          report.result[days[currentDateIndex]].mealStatistics
+                            .protein +
+                          report.result[days[currentDateIndex]].mealStatistics
+                            .fat)) *
+                        100,
+                    )
+                  }}%
+                </h5>
               </Row>
             </Row>
           </Col>
         </Card>
 
-        <Card>
+        <Card v-if="!!report.result[days[currentDateIndex]].mealStatistics">
           <Col :gap="16">
-            <CaloriesInfo :calories="2222" />
+            <CaloriesInfo
+              :calories="
+                report.result[days[currentDateIndex]].meals.reduce(
+                  (acc, meal) => acc + meal.calories,
+                  0,
+                )
+              "
+            />
             <Col :gap="24">
-              <MealInfo type="아침" :menus="['돼지국밥']" :calories="652" />
-              <MealInfo type="점심" :menus="['피자']" :calories="524" />
+              <MealInfo
+                type="아침"
+                v-if="
+                  report.result[days[currentDateIndex]].meals.filter(
+                    menu => menu.type === 'breakfast',
+                  ).length > 0
+                "
+                :calories="
+                  report.result[days[currentDateIndex]].meals
+                    .filter(menu => menu.type === 'breakfast')
+                    .reduce((acc, meal) => acc + meal.calories, 0)
+                "
+                :menus="
+                  report.result[days[currentDateIndex]].meals
+                    .filter(menu => menu.type === 'breakfast')
+                    .map(({ title }) => title)
+                "
+                :photo-ids="
+                  report.result[days[currentDateIndex]].meals
+                    .filter(menu => menu.type === 'breakfast')
+                    .map(({ photoId }) => photoId)
+                "
+              />
+              <MealInfo
+                type="점심"
+                v-if="
+                  report.result[days[currentDateIndex]].meals.filter(
+                    menu => menu.type === 'lunch',
+                  ).length > 0
+                "
+                :calories="
+                  report.result[days[currentDateIndex]].meals
+                    .filter(menu => menu.type === 'lunch')
+                    .reduce((acc, meal) => acc + meal.calories, 0)
+                "
+                :menus="
+                  report.result[days[currentDateIndex]].meals
+                    .filter(menu => menu.type === 'lunch')
+                    .map(({ title }) => title)
+                "
+                :photo-ids="
+                  report.result[days[currentDateIndex]].meals
+                    .filter(menu => menu.type === 'lunch')
+                    .map(({ photoId }) => photoId)
+                "
+              />
               <MealInfo
                 type="저녁"
-                :menus="['김치찌개', '계란말이']"
-                :calories="923"
+                v-if="
+                  report.result[days[currentDateIndex]].meals.filter(
+                    menu => menu.type === 'dinner',
+                  ).length > 0
+                "
+                :calories="
+                  report.result[days[currentDateIndex]].meals
+                    .filter(menu => menu.type === 'dinner')
+                    .reduce((acc, meal) => acc + meal.calories, 0)
+                "
+                :menus="
+                  report.result[days[currentDateIndex]].meals
+                    .filter(menu => menu.type === 'dinner')
+                    .map(({ title }) => title)
+                "
+                :photo-ids="
+                  report.result[days[currentDateIndex]].meals
+                    .filter(menu => menu.type === 'dinner')
+                    .map(({ photoId }) => photoId)
+                "
               />
-              <MealInfo type="간식" :menus="['토스트']" :calories="123" />
+              <MealInfo
+                type="간식"
+                v-if="
+                  report.result[days[currentDateIndex]].meals.filter(
+                    menu => menu.type === 'snack',
+                  ).length > 0
+                "
+                :calories="
+                  report.result[days[currentDateIndex]].meals
+                    .filter(menu => menu.type === 'snack')
+                    .reduce((acc, meal) => acc + meal.calories, 0)
+                "
+                :menus="
+                  report.result[days[currentDateIndex]].meals
+                    .filter(menu => menu.type === 'snack')
+                    .map(({ title }) => title)
+                "
+                :photo-ids="
+                  report.result[days[currentDateIndex]].meals
+                    .filter(menu => menu.type === 'snack')
+                    .map(({ photoId }) => photoId)
+                "
+              />
             </Col>
           </Col>
         </Card>

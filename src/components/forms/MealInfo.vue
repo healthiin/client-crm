@@ -2,11 +2,13 @@
 import styled from 'vue3-styled-components';
 
 import Col from '@/components/layouts/Col.vue';
+import Row from '@/components/layouts/Row.vue';
 
 type Props = {
   type: string;
   menus?: string[];
   calories?: number;
+  photoIds?: string[];
 };
 
 withDefaults(defineProps<Props>(), {
@@ -29,10 +31,14 @@ const MealImage = styled.img`
       <h5>
         {{ menus && menus.join(', ') }} {{ calories && `${calories}kcal` }}
       </h5>
-      <MealImage
-        src="https://cdn.be-healthy.life/98aa549a-99dd-402f-ac60-290787149391_20221014105204"
-        alt=""
-      />
+      <Row :gap="12">
+        <MealImage
+          v-for="photoId in photoIds"
+          v-bind:key="photoId"
+          :src="`https://cdn.be-healthy.life/${photoId}`"
+          alt=""
+        />
+      </Row>
     </Col>
   </Container>
 </template>

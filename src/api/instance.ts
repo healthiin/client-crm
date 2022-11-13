@@ -2,7 +2,8 @@ import type { AxiosResponse } from 'axios';
 import axios, { AxiosError } from 'axios';
 
 export const axiosInstance = axios.create({
-  baseURL: 'https://api.be-healthy.life',
+  // baseURL: 'https://api.be-healthy.life',
+  baseURL: 'http://localhost',
   validateStatus: status => status !== 401,
 });
 
