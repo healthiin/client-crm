@@ -20,7 +20,7 @@ jobs:
         run: yarn
 
       - name: Build
-        run: yarn build
+        run: yarn build-only
 
       - name: Deploy to S3
         uses: lbertenasco/s3-deploy@v1
