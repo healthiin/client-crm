@@ -6,7 +6,6 @@ import {
   setWeek,
   startOfWeek,
 } from 'date-fns';
-import Kakao from 'kakao-js-sdk';
 import { range } from 'radash';
 import { onMounted, reactive, ref } from 'vue';
 import { useRouter } from 'vue-router';
@@ -63,7 +62,7 @@ onMounted(async () => {
 });
 
 const handleSharing = async () => {
-  Kakao.Share.sendCustom({
+  (window as unknown as any).Kakao.Share.sendCustom({
     templateId: 85541,
     templateArgs: {
       reportId: props.reportId,
