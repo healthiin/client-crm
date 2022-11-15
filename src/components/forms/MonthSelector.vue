@@ -58,8 +58,8 @@ const handleNext = () => {
 
 <template>
   <Container>
-    <Button :deg="270" @click="handlePrev" />
+    <Button :deg="270" @click="handlePrev" v-show="false" />
     <Label>{{ date.year }}. {{ date.month.toString().padStart(2, '0') }}</Label>
-    <Button :deg="90" @click="handleNext" />
+    <Button :deg="90" @click="handleNext" v-show="false" />
   </Container>
 </template>

@@ -2,7 +2,7 @@
 import { ref } from 'vue';
 import styled, { css } from 'vue3-styled-components';
 
-const DAY_OF_WEEKS = ['월', '화', '수', '목', '금', '토', '일'];
+const DAY_OF_WEEKS = ['일', '월', '화', '수', '목', '금', '토'];
 
 const Container = styled.div`
   display: flex;
